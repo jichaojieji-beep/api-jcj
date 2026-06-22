@@ -87,33 +87,34 @@ CREATE TABLE `comment` (
 -- ============================================================
 -- 表5: api_log 请求日志表 (API中转站核心)
 -- ============================================================
-DROP TABLE IF EXISTS `api_log`;
-CREATE TABLE `api_log` (
-    `id`          BIGINT UNSIGNED   NOT NULL AUTO_INCREMENT COMMENT '主键ID，自增',
-    `ip`          VARCHAR(45)       NOT NULL DEFAULT ''     COMMENT '请求来源IP',
-    `target`      VARCHAR(2048)     NOT NULL DEFAULT ''     COMMENT '目标转发URL',
-    `method`      VARCHAR(10)       NOT NULL DEFAULT 'GET'  COMMENT 'HTTP方法',
-    `status_code` INT               NOT NULL DEFAULT 0      COMMENT '目标响应状态码',
-    `elapsed_ms`  DECIMAL(10,2)     NOT NULL DEFAULT 0.00   COMMENT '请求耗时(毫秒)',
-    `created_at`  DATETIME          NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '记录时间',
-    PRIMARY KEY (`id`),
-    KEY `idx_ip` (`ip`),
-    KEY `idx_created_at` (`created_at`),
-    KEY `idx_target` (`target`(255))
+DROP TABLE IF EXISTS \ pi_log\;
+CREATE TABLE \ pi_log\ (
+    \id\          BIGINT UNSIGNED   NOT NULL AUTO_INCREMENT COMMENT '主键ID，自增',
+    \ip\          VARCHAR(45)       NOT NULL DEFAULT ''     COMMENT '请求来源IP',
+    \	arget\      VARCHAR(2048)     NOT NULL DEFAULT ''     COMMENT '目标转发URL',
+    \method\      VARCHAR(10)       NOT NULL DEFAULT 'GET'  COMMENT 'HTTP方法',
+    \status_code\ INT               NOT NULL DEFAULT 0      COMMENT '目标响应状态码',
+    \elapsed_ms\  DECIMAL(10,2)     NOT NULL DEFAULT 0.00  COMMENT '请求耗时(毫秒)',
+    \created_at\  DATETIME          NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '记录时间',
+    PRIMARY KEY (\id\),
+    KEY \idx_ip\ (\ip\),
+    KEY \idx_created_at\ (\created_at\),
+    KEY \idx_target\ (\	arget\(255))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='API请求日志表';
 
 -- ============================================================
 -- 表6: api_config 系统配置表 (API中转站核心)
 -- ============================================================
-DROP TABLE IF EXISTS `api_config`;
-CREATE TABLE `api_config` (
-    `id`           BIGINT UNSIGNED   NOT NULL AUTO_INCREMENT COMMENT '主键ID，自增',
-    `config_key`   VARCHAR(50)       NOT NULL DEFAULT ''     COMMENT '配置项键名',
-    `config_value` TEXT              NOT NULL                COMMENT '配置项值',
-    `updated_at`   DATETIME          NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `idx_config_key` (`config_key`)
+DROP TABLE IF EXISTS \ pi_config\;
+CREATE TABLE \ pi_config\ (
+    \id\          BIGINT UNSIGNED   NOT NULL AUTO_INCREMENT COMMENT '主键ID，自增',
+    \config_key\   VARCHAR(50)       NOT NULL DEFAULT ''     COMMENT '配置项键名',
+    \config_value\ TEXT              NOT NULL                COMMENT '配置项值',
+    \updated_at\   DATETIME          NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (\id\),
+    UNIQUE KEY \idx_config_key\ (\config_key\)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='系统配置表';
 
 -- 默认插入全局密钥占位（初始为空，需管理员设置）
-INSERT INTO `api_config` (`config_key`, `config_value`) VALUES ('global_key', '');
+INSERT INTO \ pi_config\ (\config_key\, \config_value\) VALUES ('global_key', '');
+
