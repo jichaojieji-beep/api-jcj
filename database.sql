@@ -1,0 +1,84 @@
+﻿-- ============================================================
+-- 导航社区一体站 - 数据库建表脚本
+-- 适用于 MySQL 8.0 + phpMyAdmin
+-- 特点: utf8mb4 / 无符号整型 / 自动时间戳 / 查询索引 / 无外键约束
+-- ============================================================
+
+-- 1. 创建数据库（如已有可跳过）
+CREATE DATABASE IF NOT EXISTS `nav_community`
+  CHARACTER SET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
+
+USE `nav_community`;
+
+-- ============================================================
+-- 表1: user 用户表
+-- ============================================================
+DROP TABLE IF EXISTS `user`;
+CREATE TABLE `user` (
+    `id`         INT UNSIGNED      NOT NULL AUTO_INCREMENT COMMENT '主键ID，自增',
+    `email`      VARCHAR(255)      NOT NULL                COMMENT '邮箱地址，唯一登录凭证',
+    `password`   VARCHAR(255)      NOT NULL                COMMENT 'bcrypt加密存储的密码',
+    `nickname`   VARCHAR(50)       NOT NULL DEFAULT ''     COMMENT '用户昵称',
+    `avatar`     VARCHAR(255)      NOT NULL DEFAULT ''     COMMENT '头像文件路径',
+    `reg_time`   DATETIME          NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '注册时间',
+    `last_login` DATETIME          NULL                    COMMENT '最后登录时间',
+    `status`     TINYINT UNSIGNED  NOT NULL DEFAULT 0      COMMENT '账号状态: 0正常 1禁用',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `idx_email` (`email`),
+    KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户表';
+
+-- ============================================================
+-- 表2: nav_link 导航链接表
+-- ============================================================
+DROP TABLE IF EXISTS `nav_link`;
+CREATE TABLE `nav_link` (
+    `id`          INT UNSIGNED      NOT NULL AUTO_INCREMENT COMMENT '主键ID，自增',
+    `title`       VARCHAR(100)      NOT NULL                COMMENT '网站名称',
+    `url`         VARCHAR(500)      NOT NULL                COMMENT '跳转外链地址',
+    `category`    VARCHAR(50)       NOT NULL DEFAULT ''     COMMENT '分类名称',
+    `icon`        VARCHAR(255)      NOT NULL DEFAULT ''     COMMENT '图标文件路径或URL',
+    `sort`        INT               NOT NULL DEFAULT 0      COMMENT '排序数字，越大越靠前',
+    `create_time` DATETIME          NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '添加时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_category` (`category`),
+    KEY `idx_sort` (`sort`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='导航链接表';
+
+-- ============================================================
+-- 表3: post 帖子表
+-- ============================================================
+DROP TABLE IF EXISTS `post`;
+CREATE TABLE `post` (
+    `id`          INT UNSIGNED      NOT NULL AUTO_INCREMENT COMMENT '主键ID，自增',
+    `uid`         INT UNSIGNED      NOT NULL                COMMENT '关联user表id，发帖人',
+    `title`       VARCHAR(200)      NOT NULL                COMMENT '帖子标题',
+    `content`     TEXT              NOT NULL                COMMENT '帖子正文（支持富文本）',
+    `img`         VARCHAR(255)      NOT NULL DEFAULT ''     COMMENT '帖子配图路径',
+    `category`    VARCHAR(50)       NOT NULL DEFAULT ''     COMMENT '帖子分类',
+    `view`        INT UNSIGNED      NOT NULL DEFAULT 0      COMMENT '浏览次数',
+    `like`        INT UNSIGNED      NOT NULL DEFAULT 0      COMMENT '点赞数量',
+    `create_time` DATETIME          NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '发布时间',
+    `is_del`      TINYINT UNSIGNED  NOT NULL DEFAULT 0      COMMENT '是否删除: 0正常 1已删除',
+    PRIMARY KEY (`id`),
+    KEY `idx_uid` (`uid`),
+    KEY `idx_category` (`category`),
+    KEY `idx_is_del` (`is_del`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='帖子表';
+
+-- ============================================================
+-- 表4: comment 评论表
+-- ============================================================
+DROP TABLE IF EXISTS `comment`;
+CREATE TABLE `comment` (
+    `id`          INT UNSIGNED      NOT NULL AUTO_INCREMENT COMMENT '主键ID，自增',
+    `pid`         INT UNSIGNED      NOT NULL                COMMENT '关联帖子id',
+    `uid`         INT UNSIGNED      NOT NULL                COMMENT '关联用户id，评论人',
+    `content`     TEXT              NOT NULL                COMMENT '评论内容',
+    `create_time` DATETIME          NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '评论时间',
+    `is_del`      TINYINT UNSIGNED  NOT NULL DEFAULT 0      COMMENT '是否删除: 0正常 1删除',
+    PRIMARY KEY (`id`),
+    KEY `idx_pid` (`pid`),
+    KEY `idx_uid` (`uid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='评论表';
