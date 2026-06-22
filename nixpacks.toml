@@ -1,8 +1,0 @@
-[phases.setup]
-nixPkgs = ["php81", "php81Extensions.pdo_mysql"]
-
-[phases.build]
-cmds = ["mkdir -p storage"]
-
-[start]
-cmd = "php -S 0.0.0.0:80 -t ."
