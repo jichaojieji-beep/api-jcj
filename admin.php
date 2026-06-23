@@ -1,11 +1,15 @@
 <?php
 declare(strict_types=1);
 
-header('Content-Type: text/html; charset=utf-8');
+ob_start();
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 require __DIR__ . '/config.php';
 
-session_start();
+header('Content-Type: text/html; charset=utf-8');
 
 define('ADMIN_SESSION_KEY', '_admin_auth');
 define('LOGS_PER_PAGE', 20);
@@ -18,6 +22,7 @@ if (!function_exists('cleanXSS')) {
         if (function_exists('xss_clean')) {
             return xss_clean((string)$str);
         }
+
         return htmlspecialchars((string)$str, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     }
 }
@@ -96,9 +101,15 @@ if (!function_exists('getGlobalKey')) {
             }
 
             if ($createIfMissing) {
-                $fallback = defined('GLOBAL_KEY') && GLOBAL_KEY !== ''
-                    ? GLOBAL_KEY
-                    : (defined('ADMIN_KEY') ? ADMIN_KEY : 'admin123');
+                $fallback = '';
+
+                if (defined('GLOBAL_KEY') && GLOBAL_KEY !== '') {
+                    $fallback = GLOBAL_KEY;
+                } elseif (defined('ADMIN_KEY') && ADMIN_KEY !== '') {
+                    $fallback = ADMIN_KEY;
+                } else {
+                    $fallback = 'admin123';
+                }
 
                 $insert = $db->prepare(
                     "INSERT INTO api_config (config_key, config_value)
@@ -562,7 +573,7 @@ if ($action === 'login') {
             </form>
 
             <p class="muted" style="margin-top:12px;">
-                如果你还没有设置全局密钥，请先使用 config.php 中的 ADMIN_KEY 登录。
+                默认可尝试使用 config.php 中的 ADMIN_KEY 登录。当前默认值是 admin123。
             </p>
         </div>
     </div>

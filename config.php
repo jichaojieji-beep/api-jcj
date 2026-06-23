@@ -1,6 +1,9 @@
 ﻿<?php
+declare(strict_types=1);
+
 /**
  * config.php - 数据库连接常量定义
+ * 注意：本文件不要写 PHP 结束标签，避免多余空格导致 headers already sent。
  */
 
 // === 数据库连接配置 ===
@@ -9,7 +12,7 @@ define("DB_HOST", getenv("MYSQLHOST") ?: "localhost");
 define("DB_USER", getenv("MYSQLUSER") ?: "root");
 define("DB_PASS", getenv("MYSQLPASSWORD") ?: "");
 define("DB_NAME", getenv("MYSQLDATABASE") ?: "nav_community");
-define("DB_PORT", getenv("MYSQLPORT") ?: 3306);
+define("DB_PORT", (int)(getenv("MYSQLPORT") ?: 3306));
 
 // === 字符集与时区 ===
 define("DB_CHARSET", "utf8mb4");
@@ -64,59 +67,67 @@ define("JWT_SECRET", getenv("JWT_SECRET") ?: "please-change-this-jwt-secret");
 define("JWT_EXPIRE", 86400);
 
 // === 管理员密钥 ===
-// 如果你的 admin.php 里用到了 ADMIN_KEY，这里要保留
+// 如果 Railway 没有配置 ADMIN_KEY，默认后台登录密钥就是 admin123。
 define("ADMIN_KEY", getenv("ADMIN_KEY") ?: "admin123");
 
 // === API全局密钥 ===
-// 如果你的 api.php 里用到了 GLOBAL_KEY，这里要保留
+// 可在 Railway Variables 里设置 GLOBAL_KEY。
 define("GLOBAL_KEY", getenv("GLOBAL_KEY") ?: "");
 
 // === XSS过滤 ===
-function xss_clean($str) {
-    return htmlspecialchars((string)$str, ENT_QUOTES | ENT_SUBSTITUTE, "UTF-8");
+if (!function_exists("xss_clean")) {
+    function xss_clean($str): string {
+        return htmlspecialchars((string)$str, ENT_QUOTES | ENT_SUBSTITUTE, "UTF-8");
+    }
 }
 
-// === bcrypt加密（带cost检查） ===
-function bcrypt_hash($password, $cost = HASH_COST) {
-    $cost = max(4, min(31, (int)$cost));
-    return password_hash($password, PASSWORD_BCRYPT, ["cost" => $cost]);
+// === bcrypt加密 ===
+if (!function_exists("bcrypt_hash")) {
+    function bcrypt_hash($password, $cost = HASH_COST): string {
+        $cost = max(4, min(31, (int)$cost));
+        return password_hash((string)$password, PASSWORD_BCRYPT, ["cost" => $cost]);
+    }
 }
 
-function bcrypt_verify($password, $hash) {
-    return password_verify($password, $hash);
+if (!function_exists("bcrypt_verify")) {
+    function bcrypt_verify($password, $hash): bool {
+        return password_verify((string)$password, (string)$hash);
+    }
 }
 
 // === 分页HTML生成 ===
-function paginate($total, $page, $perPage = PAGE_SIZE, $urlPattern = "?page={page}") {
-    $total = max(1, (int)$total);
-    $perPage = max(1, (int)$perPage);
-    $page = max(1, min((int)$page, (int)ceil($total / $perPage)));
-    $totalPage = (int)ceil($total / $perPage);
+if (!function_exists("paginate")) {
+    function paginate($total, $page, $perPage = PAGE_SIZE, $urlPattern = "?page={page}"): string {
+        $total = max(1, (int)$total);
+        $perPage = max(1, (int)$perPage);
+        $page = max(1, min((int)$page, (int)ceil($total / $perPage)));
+        $totalPage = (int)ceil($total / $perPage);
 
-    $html = "<div class=\"pagination\">";
-    $html .= "<span>{$page}/{$totalPage} 页 (共{$total}条)</span>";
+        $html = "<div class=\"pagination\">";
+        $html .= "<span>{$page}/{$totalPage} 页 (共{$total}条)</span>";
 
-    if ($page > 1) {
-        $html .= "<a href=\"" . str_replace("{page}", 1, $urlPattern) . "\">首页</a>";
-        $html .= "<a href=\"" . str_replace("{page}", $page - 1, $urlPattern) . "\">上一页</a>";
-    }
-
-    $start = max(1, $page - 2);
-    $end = min($totalPage, $page + 2);
-
-    for ($i = $start; $i <= $end; $i++) {
-        if ($i === $page) {
-            $html .= "<strong>{$i}</strong>";
-        } else {
-            $html .= "<a href=\"" . str_replace("{page}", $i, $urlPattern) . "\">{$i}</a>";
+        if ($page > 1) {
+            $html .= "<a href=\"" . str_replace("{page}", "1", $urlPattern) . "\">首页</a>";
+            $html .= "<a href=\"" . str_replace("{page}", (string)($page - 1), $urlPattern) . "\">上一页</a>";
         }
-    }
 
-    if ($page < $totalPage) {
-        $html .= "<a href=\"" . str_replace("{page}", $page + 1, $urlPattern) . "\">下一页</a>";
-        $html .= "<a href=\"" . str_replace("{page}", $totalPage, $urlPattern) . "\">末页</a>";
-    }
+        $start = max(1, $page - 2);
+        $end = min($totalPage, $page + 2);
 
-    $html .= "</div>";
-    return $html;
+        for ($i = $start; $i <= $end; $i++) {
+            if ($i === $page) {
+                $html .= "<strong>{$i}</strong>";
+            } else {
+                $html .= "<a href=\"" . str_replace("{page}", (string)$i, $urlPattern) . "\">{$i}</a>";
+            }
+        }
+
+        if ($page < $totalPage) {
+            $html .= "<a href=\"" . str_replace("{page}", (string)($page + 1), $urlPattern) . "\">下一页</a>";
+            $html .= "<a href=\"" . str_replace("{page}", (string)$totalPage, $urlPattern) . "\">末页</a>";
+        }
+
+        $html .= "</div>";
+        return $html;
+    }
 }
